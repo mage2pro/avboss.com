@@ -27,7 +27,7 @@ require(['jquery', 'domReady!'], function($) {
 			}
 		});
 		$.each(map, function(v, items) {
-			if (v !== moda) {
+			if (v !== moda || 1 === modaCount) {
 				$.each(items, function(index, $item) {
 					$item.css('background', '#add8e6');
 				});
