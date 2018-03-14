@@ -1,0 +1,15 @@
+{
+	"name": "mage2pro/avboss.com"
+	,"description": "A custom module for avboss.com"
+	,"type": "magento2-module"
+	,"version": "0.0.1"
+	,"license": "MIT"
+	,"authors": [{
+		"name": "Dmitry Fedyuk"
+		,"email": "admin@mage2.pro"
+		,"homepage": "https://mage2.pro/users/dmitry_fedyuk"
+		,"role": "Developer"
+	}]
+	,"autoload": {"files": ["registration.php"], "psr-4": {"Dfe\\Avboss\\": ""}}
+	,"keywords": ["Magento 2"]
+}
