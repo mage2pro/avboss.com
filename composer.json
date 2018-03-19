@@ -2,7 +2,7 @@
 	"name": "mage2pro/avboss.com"
 	,"description": "A custom module for avboss.com"
 	,"type": "magento2-module"
-	,"version": "1.1.0"
+	,"version": "1.1.1"
 	,"license": "MIT"
 	,"authors": [{
 		"name": "Dmitry Fedyuk"
