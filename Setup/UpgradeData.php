@@ -78,13 +78,16 @@ class UpgradeData implements IUpgradeData {
 		if ($this->v('0.0.3')) {
 			$this->correctPriceAttributes(self::$att_0_0_3);
 		}
+		if ($this->v('1.1.2')) {
+			$this->upgrade_1_1_2();
+		}
 		$setup->endSetup();
 	}
 
 	/**
 	 * 2018-03-19
 	 * @param string[] $att
-	 * @used-by upgrade()
+	 *
 	 */
 	private function correctPriceAttributes(array $att) {
 		$om = OM::getInstance(); /** @var OM $om */
@@ -147,6 +150,21 @@ class UpgradeData implements IUpgradeData {
 				,['? = filter_code' => "attr_$c"]
 			);
 		}, $att);
+	}
+
+	/**
+	 * 2018-03-19
+	 * @used-by upgrade()
+	 */
+	private function upgrade_1_1_2() {
+		$conn = $this->_setup->getConnection();  /** @var Adapter|IAdapter $conn */
+		$s = $conn->select();
+		$s->from($this->_setup->getTable('eav_attribute'), ['attribute_id']);
+		$s->where('attribute_code IN(?)', [self::att()]);
+		$conn->fetchCol($s);
+		$conn->delete($this->_setup->getTable('catalog_product_entity_decimal'),
+			$conn->quoteInto('attribute_id IN (?)', $conn->fetchCol($s))
+		);
 	}
 
 	/**
