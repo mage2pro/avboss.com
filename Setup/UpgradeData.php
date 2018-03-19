@@ -73,19 +73,23 @@ class UpgradeData implements IUpgradeData {
 		$this->_context = $context;
 		$this->_setup = $setup;
 		if ($this->v('0.0.2')) {
-			$this->correctPriceAttributes();
+			$this->correctPriceAttributes(self::$att_0_0_2);
+		}
+		if ($this->v('0.0.3')) {
+			$this->correctPriceAttributes(self::$att_0_0_3);
 		}
 		$setup->endSetup();
 	}
 
 	/**
 	 * 2018-03-19
+	 * @param string[] $att
 	 * @used-by upgrade()
 	 */
-	private function correctPriceAttributes() {
+	private function correctPriceAttributes(array $att) {
 		$om = OM::getInstance(); /** @var OM $om */
 		$pc = $om->create(PC::class); /** @var PC $pc */
-		$pc->addAttributeToSelect(self::$att)->load();
+		$pc->addAttributeToSelect($att)->load();
 		$eavConfig = $om->get(EavConfig::class); /** @var EavConfig $eavConfig */
 		$optionM = $om->get(IOptionManagement::class); /** @var IOptionManagement|OptionManagement $optionM */
 		$s = $om->create(EavSetup::class, ['setup' => $this->_setup]); /** @var EavSetup $s */
@@ -142,11 +146,7 @@ class UpgradeData implements IUpgradeData {
                 ['display_mode' => 0, 'is_multiselect' => 1]
 				,['? = filter_code' => "attr_$c"]
 			);
-		}, self::$att);
-		//$ic = $om->create(IC::class); /** @var IC $ic */
-		//foreach ($ic->getItems() as $indexer) {
-		//	$indexer->reindexAll();
-		//}
+		}, $att);
 	}
 
 	/**
@@ -174,9 +174,17 @@ class UpgradeData implements IUpgradeData {
 
 	/**
 	 * 2018-03-19
+	 * @used-by \Mage4\Grouping\Helper\Data::renderCompareSubGroup()
+	 * @return string[]
+	 */
+	static function att() {return array_merge(self::$att_0_0_2, self::$att_0_0_3);}
+
+	/**
+	 * 2018-03-19
+	 * @used-by att()
 	 * @const string[]
 	 */
-	static $att = [
+	private static $att_0_0_2 = [
 		'blueray_release_year'
 		,'minimum_impedance_ohms'
 		,'no_digital_coaxial_inputs'
@@ -197,4 +205,11 @@ class UpgradeData implements IUpgradeData {
 		,'tv_no_of_hdmi_inputs'
 		,'tv_release_year'
 	];
+
+	/**
+	 * 2018-03-19
+	 * @used-by att()
+	 * @const string[]
+	 */
+	private static $att_0_0_3 = ['projectors_hdmi_inputs'];
 }
