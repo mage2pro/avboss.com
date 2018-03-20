@@ -198,6 +198,31 @@ class UpgradeData implements IUpgradeData {
 	static function att() {return array_merge(self::$att_0_0_2, self::$att_0_0_3);}
 
 	/**
+	 * 2018-03-20
+	 * @used-by \Mage4\Grouping\Block\Product\View\Attributes::getAdditionalData()
+	 * @var string[]
+	 */
+	static $fucking = [
+		'analog_audio_outputs'
+		,'blueray_analog_outputs'
+		,'blueray_hdmi_inputs'
+		,'blueray_hdmi_outputs'
+		,'no_of_component_outputs'
+		,'no_of_composite_inputs'
+		,'no_of_composite_outputs'
+		,'no_of_hdmi_inputs'
+		,'no_of_hdmi_outputs'
+		,'no_of_usb_ports'
+		,'no_of_vga_inputs'
+		,'no_of_zones'
+		,'projectors_hdmi_inputs'
+		,'soundbars_hdmi_output'
+		,'soundbars_no_hdmi_inputs'
+		,'tv_no_usb_3_0_ports'
+		,'no_of_component_inputs'
+	];
+
+	/**
 	 * 2018-03-19
 	 * @used-by att()
 	 * @const string[]
