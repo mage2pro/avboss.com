@@ -79,8 +79,13 @@ class UpgradeData implements IUpgradeData {
 			$this->correctPriceAttributes(self::$att_0_0_3);
 		}
 		if ($this->v('1.1.2')) {
-			$this->upgrade_1_1_2();
+			$this->cleanDecimalTable();
 		}
+		/*if ($this->v('1.2.0')) {
+			$this->correctPriceAttributes(self::$att_1_2_0_int);
+			$this->correctPriceAttributes(self::$att_1_2_0_decimal);
+			$this->cleanDecimalTable();
+		} */
 		$setup->endSetup();
 	}
 
@@ -129,21 +134,32 @@ class UpgradeData implements IUpgradeData {
 		};
 		$pa = $om->get(PA::class); /** @var PA $pa */
 		array_map(function($c) use($eavConfig, $fOption, $fUpdate, $pa, $pc) {
-			$fUpdate($c, 'frontend_input', 'select');
+			$isDecimal = $this->isDecimal($c); /** @var bool $isDecimal */
+			// 2018-03-24 https://magento.stackexchange.com/a/4892
+			//$fUpdate($c, 'frontend_input', $isDecimal ? 'multiselect' : 'select');
+			//$fUpdate($c, 'backend_type', $isDecimal ? 'varchar' : 'int');
+			$fUpdate($c, 'frontend_input', $isDecimal ? 'multiselect' : 'select');
+			$fUpdate($c, 'backend_type', $isDecimal ? 'decimal' : 'int');
 			$fUpdate($c, 'backend_model');
-			$fUpdate($c, 'backend_type', 'int');
 			$fUpdate($c, 'source_model', Table::class);
 			$map = []; /** @var array(string => int) $map */
+			//$vals = [];
 			foreach ($pc as $p) {/** @var P $p */
 				$v = $p[$c];
 				if (!is_null($v)) {
-					$v = 'total_harmonic_distortion' === $c ? number_format($v, 2, '.', '') : intval(floatval($v));
+					//$vals[]= $v;
+					$v = 'total_harmonic_distortion' === $c ? number_format($v, 2, '.', '') : (
+						$isDecimal ? strval(floatval($v)) : intval(floatval($v))
+					);
 					if (!isset($map[$v])) {
 						$map[$v] = $fOption($c, $v);
 					}
 					$pa->updateAttributes([$p->getId()], [$c => $map[$v]], 0);
 				}
 			}
+			//$vals = array_unique($vals);
+			//sort($vals);
+			//file_put_contents("C:/work/clients/avboss.com/code/var/log/$c.txt", implode("\n", $vals));
 			$conn = $this->_setup->getConnection();  /** @var Adapter|IAdapter $conn */
 			$conn->update($this->_setup->getTable('amasty_amshopby_filter_setting'),
                 ['display_mode' => 0, 'is_multiselect' => 1]
@@ -156,16 +172,28 @@ class UpgradeData implements IUpgradeData {
 	 * 2018-03-19
 	 * @used-by upgrade()
 	 */
-	private function upgrade_1_1_2() {
+	private function cleanDecimalTable() {
 		$conn = $this->_setup->getConnection();  /** @var Adapter|IAdapter $conn */
 		$s = $conn->select();
 		$s->from($this->_setup->getTable('eav_attribute'), ['attribute_id']);
-		$s->where('attribute_code IN(?)', [self::att()]);
+		$s->where('attribute_code IN(?)', [array_filter(self::att(), function($c) {return
+			!$this->isDecimal($c)
+		;})]);
+		//$s->where('attribute_code IN(?)', [self::att()]);
 		$conn->fetchCol($s);
 		$conn->delete($this->_setup->getTable('catalog_product_entity_decimal'),
 			$conn->quoteInto('attribute_id IN (?)', $conn->fetchCol($s))
 		);
 	}
+
+	/**
+	 * 2018-03-24
+	 * @used-by cleanDecimalTable()
+	 * @used-by correctPriceAttributes()
+	 * @param string $c
+	 * @return bool
+	 */
+	private function isDecimal($c) {return in_array($c, self::$att_1_2_0_decimal);}
 
 	/**
 	 * 2018-03-19 It checks whether the installed version of the current module is lower than $v.
@@ -192,10 +220,11 @@ class UpgradeData implements IUpgradeData {
 
 	/**
 	 * 2018-03-19
+	 * @used-by cleanDecimalTable()
 	 * @used-by \Mage4\Grouping\Helper\Data::renderCompareSubGroup()
 	 * @return string[]
 	 */
-	static function att() {return array_merge(self::$att_0_0_2, self::$att_0_0_3);}
+	static function att() {return array_merge(self::$att_0_0_2, self::$att_0_0_3/*, self::$att_1_2_0_int*/);}
 
 	/**
 	 * 2018-03-20
@@ -225,6 +254,7 @@ class UpgradeData implements IUpgradeData {
 	/**
 	 * 2018-03-19
 	 * @used-by att()
+	 * @used-by upgrade()
 	 * @const string[]
 	 */
 	private static $att_0_0_2 = [
@@ -252,7 +282,80 @@ class UpgradeData implements IUpgradeData {
 	/**
 	 * 2018-03-19
 	 * @used-by att()
+	 * @used-by upgrade()
 	 * @const string[]
 	 */
 	private static $att_0_0_3 = ['projectors_hdmi_inputs'];
+
+	/**
+	 * 2018-03-24
+	 * @used-by att()
+	 * @const string[]
+	 */
+	private static $att_1_2_0_decimal = [
+		'bookshelf_woofer_size'
+		,'center_midrange_size'
+		,'center_woofer_size'
+		,'driver_woofer_size'
+		,'floor_midrange_size'
+		,'floor_woofer_size'
+		,'screen_size'
+		,'soundbars_midrange_size'
+		,'soundbars_popular_driver_size'
+		,'soundbars_woofer_size'
+		,'ss_center_speaker_size'
+		,'ss_front_speakers_size'
+		,'ss_subwoofer_size'
+		,'ss_surroundspeaker_size'
+		,'subwoofers_driver_size'
+		,'surround_release_year'
+		,'surround_woofer_size'
+		,'zoom_lens'
+	];
+
+	/**
+	 * 2018-03-24
+	 * @used-by att()
+	 * @const string[]
+	 */
+	private static $att_1_2_0_int = [
+		'audible_noise_eco' // int
+		,'audible_noise_full' // int
+		,'bookshelf_gen_height' // int
+		,'bookshelf_release_year'
+		,'bookshelf_tech_max_recom_power' // int
+		,'bookshelf_tech_sensitivity' // int
+		,'brightness' // int
+		,'center_gen_max_recom_power' // int
+		,'center_release_year'
+		,'center_sensitivity' // int
+		,'contrast_ratio' // int
+		,'floor_general_height' // int
+		,'floor_release_year'
+		,'floor_tech_max_recom_power' // int
+		,'floor_tech_sensitivity' // int
+		,'gen_release_year'
+		,'inwall_release_year'
+		,'lamp_life_eco' // int
+		,'lamp_life_full' // int
+		,'n_o_channels' // int
+		,'rms_power_watts' // int
+		,'screen_size'
+		,'soundbars_popular_release_year'
+		,'soundbars_popular_width' // int
+		,'ss_center_speaker_sensitivity' // int
+		,'ss_front_speakers_sensitivity' // int
+		,'ss_subwoofer_rms_power' // int
+		,'ss_surroundspeaker_sensitivity' // int
+		,'subwoofers_peak_power' // int
+		,'subwoofers_release_year'
+		,'subwoofers_rms_power' // int
+		,'surround_gen_height' // int
+		,'surround_release_year'
+		,'surround_tech_max_recom_power' // int
+		,'surround_tech_sensitivity' // int
+		,'tech_max_recommended_power' // int
+		,'tech_sensitivity' // int
+		,'tv_screen_size' // int
+	];
 }
