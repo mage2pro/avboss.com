@@ -1862,29 +1862,33 @@
       return q.call(this, v, build);
     }
   };
-  p.setQuery = function(name, value, build) {
-    var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
-
-    if (typeof name === 'string' || name instanceof String) {
-      data[name] = value !== undefined ? value : null;
-    } else if (typeof name === 'object') {
-      for (var key in name) {
-        if (hasOwn.call(name, key)) {
-          data[key] = name[key];
-        }
-      }
-    } else {
-      throw new TypeError('URI.addQuery() accepts an object, string as the name parameter');
-    }
-
-    this._parts.query = URI.buildQuery(data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace);
-    if (typeof name !== 'string') {
-      build = value;
-    }
-
-    this.build(!build);
-    return this;
-  };
+	p.setQuery = function(name, value, build) {
+		var data;
+		if (typeof name === 'string' || name instanceof String) {
+			data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
+			data[name] = value !== undefined ? value : null;
+		}
+		else if (typeof name === 'object') {
+			// 2018-05-30 Dmitry Fedyuk https://www.upwork.com/fl/mage2pro
+			data = {};
+			for (var key in name) {
+				if (hasOwn.call(name, key)) {
+					data[key] = name[key];
+				}
+			}
+		}
+		else {
+			throw new TypeError('URI.addQuery() accepts an object, string as the name parameter');
+		}
+		this._parts.query = URI.buildQuery(
+			data, this._parts.duplicateQueryParameters, this._parts.escapeQuerySpace
+		);
+		if (typeof name !== 'string') {
+			build = value;
+		}
+		this.build(!build);
+		return this;
+	};
   p.addQuery = function(name, value, build) {
     var data = URI.parseQuery(this._parts.query, this._parts.escapeQuerySpace);
     URI.addQuery(data, name, value === undefined ? null : value);
