@@ -1,4 +1,4 @@
-A custom module for [avboss.com](http://avboss.com).
+A custom module for [avboss.com](http://avboss.com) (Magento 2).
 
 ## How to install
 ```
