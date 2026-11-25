@@ -1869,7 +1869,7 @@
 			data[name] = value !== undefined ? value : null;
 		}
 		else if (typeof name === 'object') {
-			// 2018-05-30 Dmitry Fedyuk https://www.upwork.com/fl/mage2pro
+			// 2018-05-30 Dmitry Fedyuk https://github.com/dmitrii-fediuk
 			data = {};
 			for (var key in name) {
 				if (hasOwn.call(name, key)) {
